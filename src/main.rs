@@ -1,10 +1,9 @@
-use bytes::{Buf, BytesMut};
+use bytes::BytesMut;
 use clap::Clap;
 use futures::SinkExt;
 use log::{debug, info, trace, warn};
-use std::fmt::Display;
-use std::net::{IpAddr, SocketAddr};
-use std::{env, error::Error, fmt, io};
+use std::net::SocketAddr;
+use std::{error::Error, io};
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::stream::StreamExt;
@@ -30,7 +29,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     info!("Listening on: {}", addr);
 
     while let Some(Ok(mut stream)) = incoming.next().await {
-        stream.write(b"+OK Welcome to mock-pop\n").await;
+        let _ = stream.write(b"+OK Welcome to mock-pop\n").await;
         tokio::spawn(async move {
             if let Err(e) = process(stream).await {
                 warn!("failed to process connection; error = {}", e);
@@ -139,7 +138,8 @@ impl Command {
                 )
             }
             Command::Retr(message_index) => {
-                let message = "abcd";
+                let messages: Vec<&str> = vec!["abcd"];
+                let message = messages.get(*message_index as usize).unwrap_or(&"");
                 let message_size = message.clone().as_bytes().len();
 
                 format!("{} octets\n{}\n.", message_size, message)
@@ -184,7 +184,6 @@ impl Response {
 impl Encoder<Response> for Pop {
     type Error = io::Error;
     fn encode(&mut self, item: Response, dst: &mut BytesMut) -> io::Result<()> {
-        use std::fmt::Write;
         debug!("Responding {:?}", item.respond());
         dst.extend_from_slice(item.respond().as_bytes());
         Ok(())
