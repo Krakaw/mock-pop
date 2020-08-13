@@ -32,7 +32,8 @@ struct PopConfig {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    env_logger::init();
+    env_logger::from_env(env_logger::Env::default().default_filter_or("info")).init();
+
     let opts: Opts = Opts::parse();
     let (addr, no_pop_start) = match opts.pop {
         PopSubCommand::Pop(pop_config) => (pop_config.listen, pop_config.no_start),

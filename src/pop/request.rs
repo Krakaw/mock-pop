@@ -25,6 +25,7 @@ impl Decoder for Pop {
             .trim()
             .split("\n")
             .map(|p| {
+                trace!("Converting string: {} to command", p);
                 let command = Command::from_str(p.trim());
                 Request { command }
             })
